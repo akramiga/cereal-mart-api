@@ -1,7 +1,11 @@
 from django.shortcuts import render
-from rest_framework import viewsets, permissions, generics
+from rest_framework import viewsets, permissions, generics, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.db.models import Sum
+from rest_framework.views import APIView
 from .models import Crop, Inventory
-from .serializers import CropSerializer, InventorySerializer, UserSerializer
+from .serializers import CropSerializer, InventorySerializer, UserSerializer, UserRegistrationSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from django.contrib.auth.models import User
@@ -25,6 +29,33 @@ class CropViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    @action(detail=False, methods=['GET'], permission_classes=[permissions.IsAuthenticated])
+    def inventory_summary(self, request):
+        """
+        Provide a summary of inventory levels for all crops
+        """
+        summary = []
+        for crop in Crop.objects.all():
+            stock_in = crop.transactions.filter(transaction_type='IN').aggregate(
+                total_in=Sum('quantity')
+            )['total_in'] or 0
+            
+            stock_out = crop.transactions.filter(transaction_type='OUT').aggregate(
+                total_out=Sum('quantity')
+            )['total_out'] or 0
+            
+            current_stock = stock_in - stock_out
+            
+            summary.append({
+                'crop_name': crop.name,
+                'current_stock': current_stock,
+                'unit_price': crop.unit_price,
+                'category': crop.category
+            })
+        
+        return Response(summary)
+    
+
 
 '''
 here we only want authenticated users to perform transactions
@@ -42,16 +73,24 @@ class InventoryViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-'''
-we are giving the admin control to list users in our project and also
-to view users details
-'''
-class UserList(generics.ListAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]  
+class UserRegistrationView(APIView):
+    permission_classes = [permissions.AllowAny]
 
-class UserDetail(generics.RetrieveAPIView):
+    def post(self, request):
+        serializer = UserRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({
+                'user': UserSerializer(user).data,
+                'message': 'User created successfully'
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+'''
+we are giving the admin control to to view users details
+'''
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]  
+    permission_classes = [permissions.IsAdminUser]

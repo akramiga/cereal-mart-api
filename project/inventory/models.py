@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 class Crop(models.Model):
-    item_name=models.CharField(max_length=255, unique=True)
+    name=models.CharField(max_length=255, unique=True)
     category= models.CharField(max_length=200, blank=True, null=True)
     unit_price= models.DecimalField(max_digits=10, decimal_places=2)
     added_on=models.DateTimeField(auto_now_add=True)
