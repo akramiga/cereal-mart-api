@@ -24,7 +24,7 @@ class CropViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
     filterset_fields = ['category', 'name']  
     ordering_fields = ['name', 'unit_price', 'date_added'] 
-    search_fields = ['name', 'description'] 
+    search_fields = ['name'] 
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

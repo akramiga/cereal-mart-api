@@ -6,8 +6,8 @@ class CropSerializer(serializers.ModelSerializer):
     current_stock = serializers.SerializerMethodField()
     class Meta:
         model = Crop
-        fields = ['name','description','unit_price','added_on','last_updated','user','current_stock']
-        read_only_fields = ['added_on', 'last_updated']
+        fields = ['name','unit_price','date_added','last_updated','user','current_stock']
+        read_only_fields = ['date_added', 'last_updated']
 
     def get_current_stock(self, obj):
         """Calculate current stock for a crop"""
@@ -54,14 +54,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     an error if they do not match
     the crate method will create a user upon sucessfull password matching
     '''
-    def validate(self, password):
-        if password['password1'] != password['password2']:
+    def validate(self, data):
+        if data['password1'] != data['password2']:
             raise serializers.ValidationError(
                 {"password": "Passwords  do not match!!"}
             )
-        return password
+        return data
 
+    
     def create(self, validated_data):
+        password = validated_data.pop('password1')
         validated_data.pop('password2')
         user = User.objects.create_user(**validated_data)
+        user.set_password(password)
+        user.save()
         return user
+        
