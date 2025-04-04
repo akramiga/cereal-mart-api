@@ -1,14 +1,15 @@
 from django.shortcuts import render
-from rest_framework import viewsets, permissions, generics, status
+from rest_framework import viewsets, permissions,generics, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Sum
 from rest_framework.views import APIView
 from .models import Crop, Inventory
-from .serializers import CropSerializer, InventorySerializer, UserSerializer, UserRegistrationSerializer
+from .serializers import CropSerializer, InventorySerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-from django.contrib.auth.models import User
+from .permissions import IsOwnerOrReadOnly
+
 # Create your views here.
 
 '''
@@ -73,24 +74,4 @@ class InventoryViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class UserRegistrationView(APIView):
-    permission_classes = [permissions.AllowAny]
 
-    def post(self, request):
-        serializer = UserRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response({
-                'user': UserSerializer(user).data,
-                'message': 'User created successfully'
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-'''
-we are giving the admin control to to view users details
-'''
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]

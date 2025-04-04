@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Crop, User,Inventory
+from .models import Crop,Inventory
 
 class CropSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
@@ -32,41 +32,3 @@ class InventorySerializer(serializers.ModelSerializer):
         model = Inventory
         fields = ['crop','crop_name','transaction_type', 'quantity', 'transaction_date', 'user',]
         read_only_fields = ['transaction_date']
-
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id','username', 'email']        
-
-
-class UserRegistrationSerializer(serializers.ModelSerializer):
-    password1 = serializers.CharField(write_only=True, required=True)
-    password2 = serializers.CharField(write_only=True, required=True)
-
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'password1', 'password2')
-        
-    '''
-    the validate method is going to validate our passwords to make sure they match and it returns 
-    an error if they do not match
-    the crate method will create a user upon sucessfull password matching
-    '''
-    def validate(self, data):
-        if data['password1'] != data['password2']:
-            raise serializers.ValidationError(
-                {"password": "Passwords  do not match!!"}
-            )
-        return data
-
-    
-    def create(self, validated_data):
-        password = validated_data.pop('password1')
-        validated_data.pop('password2')
-        user = User.objects.create_user(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
-        
