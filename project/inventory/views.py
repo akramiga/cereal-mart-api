@@ -24,7 +24,7 @@ class CropViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly] 
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
     filterset_fields = ['category', 'name']  
-    ordering_fields = ['name', 'unit_price', 'date_added'] 
+    ordering_fields = ['name', 'date_added'] 
     search_fields = ['name'] 
 
     def perform_create(self, serializer):

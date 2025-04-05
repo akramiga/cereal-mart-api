@@ -2,12 +2,16 @@ from rest_framework import serializers
 from .models import Crop,Inventory
 
 class CropSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='user.username')
     current_stock = serializers.SerializerMethodField()
     class Meta:
         model = Crop
-        fields = ['name','unit_price','date_added','last_updated','user','current_stock']
+        fields = ['id','name','category','unit_price','date_added','last_updated','current_stock']
         read_only_fields = ['date_added', 'last_updated']
+        extra_kwargs = {
+            'name': {'required': True},
+            'category': {'required': True},
+            'unit_price': {'required': True}
+        }
 
     def get_current_stock(self, obj):
         """Calculate current stock for a crop"""
@@ -27,8 +31,12 @@ class CropSerializer(serializers.ModelSerializer):
 
 class InventorySerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
-    crop_name = serializers.ReadOnlyField(source='crop.name')
     class Meta:
         model = Inventory
-        fields = ['crop','crop_name','transaction_type', 'quantity', 'transaction_date', 'user',]
+        fields = ['crop','transaction_type', 'quantity', 'transaction_date', 'user',]
         read_only_fields = ['transaction_date']
+        extra_kwargs = {
+            'name': {'required': True},
+            'transaction_type': {'required': True},
+            'quantity': {'required': True}
+        }
