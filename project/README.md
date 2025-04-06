@@ -25,9 +25,9 @@ This project implements a RESTful API using Django REST Framework (DRF) for mana
 
 ### Authentication
 
-- `POST /users/register/` - Register a new user
-- `POST /users/token/` - Obtain JWT token
-- `POST /users/token/refresh/` - Refresh JWT token
+- `POST api/users/register/` - Register a new user
+- `POST api/users/token/` - Obtain JWT token
+- `POST api/users/token/refresh/` - Refresh JWT token
 
 ### Users
 
@@ -61,10 +61,10 @@ To authenticate, first register a user:
 ```
 POST /api/users/register/
 {
-    "username": "user1",
+    "username": "john",
     "email": "user1@example.com",
-    "password1": "securepassword",
-    "password2": "securepassword"
+    "password1": "j1234",
+    "password2": "secure"
 }
 ```
 
